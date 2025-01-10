@@ -22,6 +22,10 @@
       {
         "command": "extensionManager.open",
         "title": "Open Extension Manager"
+      },
+      {
+        "command": "extension.generateReadme",
+        "title": "Generate README.md"
       }
     ]
   },

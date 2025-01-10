@@ -1,11 +1,8 @@
 import * as vscode from 'vscode';
+import { initWorkTimeTracker, dispose } from './workTimeTracker';
 import { activateExtensionManager } from './extensionManager';
-
-let timer: NodeJS.Timeout | undefined;
-let startTime: number | undefined;
-let elapsedTime: number = 0;
-let statusBarItem: vscode.StatusBarItem;
-let isPaused: boolean = false;
+import { generateReadmeContent } from './readmeTemplate';
+import { createOrUpdateReadmeFile } from './utils';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "work-time-tracker" is now active!');
@@ -13,66 +10,29 @@ export function activate(context: vscode.ExtensionContext) {
     initWorkTimeTracker(context);
 
     activateExtensionManager(context);
-}
 
-function initWorkTimeTracker(context: vscode.ExtensionContext) {
-    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    statusBarItem.text = 'Work Time: 00h 00m 00s';
-    statusBarItem.tooltip = 'Click to pause/resume';
-    statusBarItem.command = 'workTimeTracker.pauseResume';
-    statusBarItem.show();
+	let disposable = vscode.commands.registerCommand('extension.generateReadme', async () => {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder) {
+            vscode.window.showErrorMessage("No workspace folder opened.");
+            return;
+        }
 
-    startTimer();
+        const name = await vscode.window.showInputBox({ prompt: "Enter the project name" });
+        const description = await vscode.window.showInputBox({ prompt: "Enter the project description" });
+        const installation = await vscode.window.showInputBox({ prompt: "Enter the installation instructions" });
+        const usage = await vscode.window.showInputBox({ prompt: "Enter usage instructions" });
 
-    const pauseResumeCommand = vscode.commands.registerCommand('workTimeTracker.pauseResume', () => {
-        if (isPaused) {
-            startTimer();
-        } else {
-            pauseTimer();
+        if (name && description && installation && usage) {
+            const readmeContent = generateReadmeContent(name, description, installation, usage);
+            await createOrUpdateReadmeFile(workspaceFolder.uri.fsPath, readmeContent);
+            vscode.window.showInformationMessage("README.md file has been generated/updated.");
         }
     });
 
-    context.subscriptions.push(pauseResumeCommand, statusBarItem);
-}
-
-function startTimer() {
-    if (isPaused) {
-        startTime = Date.now() - elapsedTime;
-    } else {
-        startTime = Date.now();
-    }
-    isPaused = false;
-
-    timer = setInterval(() => {
-        if (startTime) {
-            const currentElapsedTime = Date.now() - startTime;
-            const seconds = Math.floor(currentElapsedTime / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-            const displayTime = `${hours}h ${minutes % 60}m ${seconds % 60}s`;
-
-            statusBarItem.text = `Work Time: ${displayTime}`;
-        }
-    }, 1000);
-}
-
-function pauseTimer() {
-    if (timer) {
-        clearInterval(timer);
-        timer = undefined;
-    }
-    if (startTime) {
-        elapsedTime = Date.now() - startTime;
-    }
-    isPaused = true;
-    statusBarItem.text = 'Work Time: Paused';
+    context.subscriptions.push(disposable);	
 }
 
 export function deactivate() {
-    if (timer) {
-        clearInterval(timer);
-    }
-    if (statusBarItem) {
-        statusBarItem.dispose();
-    }
+	dispose();
 }
