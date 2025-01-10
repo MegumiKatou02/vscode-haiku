@@ -15,11 +15,15 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-            {
-                "command": "workTimeTracker.pauseResume",
-                "title": "Pause/Resume Work Time Tracker"
-            }
-        ]
+      {
+          "command": "workTimeTracker.pauseResume",
+          "title": "Pause/Resume Work Time Tracker"
+      },
+      {
+        "command": "extensionManager.open",
+        "title": "Open Extension Manager"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

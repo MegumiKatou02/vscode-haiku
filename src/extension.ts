@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { activateExtensionManager } from './extensionManager';
 
 let timer: NodeJS.Timeout | undefined;
 let startTime: number | undefined;
@@ -9,10 +10,16 @@ let isPaused: boolean = false;
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "work-time-tracker" is now active!');
 
+    initWorkTimeTracker(context);
+
+    activateExtensionManager(context);
+}
+
+function initWorkTimeTracker(context: vscode.ExtensionContext) {
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     statusBarItem.text = 'Work Time: 00h 00m 00s';
-    statusBarItem.tooltip = 'Click to pause/resume'; 
-    statusBarItem.command = 'workTimeTracker.pauseResume'; 
+    statusBarItem.tooltip = 'Click to pause/resume';
+    statusBarItem.command = 'workTimeTracker.pauseResume';
     statusBarItem.show();
 
     startTimer();
@@ -46,7 +53,7 @@ function startTimer() {
 
             statusBarItem.text = `Work Time: ${displayTime}`;
         }
-    }, 1000); 
+    }, 1000);
 }
 
 function pauseTimer() {
