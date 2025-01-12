@@ -1,6 +1,6 @@
 {
-  "name": "key-mapper",
-  "displayName": "Key Mapper",
+  "name": "haiku-extension",
+  "displayName": "Haiku Extension",
   "description": "",
   "version": "0.0.1",
   "engines": {
