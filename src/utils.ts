@@ -15,3 +15,7 @@ export async function createOrUpdateReadmeFile(folderPath: string, content: stri
         vscode.window.showErrorMessage("Error writing README.md: " + (error as Error).message);
     }
 }
+
+export function log(message: string): void {
+    console.log(`[Code Metrics Visualizer] ${message}`);
+}
