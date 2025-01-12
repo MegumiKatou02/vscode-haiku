@@ -36,16 +36,33 @@ export class CodeAnalyzer {
 
     private countFunctions(code: string): number {
         const functionPattern = /function\s+\w+\s*\(|function\s*\(/g;
+        const arrowFunctionPattern = /(const|let|var)\s+\w+\s*=\s*\([^)]*\)\s*=>|\([^)]*\)\s*=>/g; 
+        const asyncFunctionPattern = /async\s+function\s+\w+\s*\(|async\s+function\s*\(|async\s+\([^)]*\)\s*=>/g; 
+        const generatorFunctionPattern = /function\*\s+\w+\s*\(|function\*\s*\(/g; 
+        
+        const classMethodPattern = /\b\w+\s*\([^)]*\)\s*{/g; 
+        const getterSetterPattern = /\b(get|set)\s+\w+\s*\([^)]*\)\s*{/g;
+        const es6ObjectMethodPattern = /\b\w+\s*\([^)]*\)\s*{/g;
+    
         const functionMatches = (code.match(functionPattern) || []).length;
-
-        const arrowFunctionPattern = /const\s+\w+\s*=\s*\([^)]*\)\s*=>|let\s+\w+\s*=\s*\([^)]*\)\s*=>|var\s+\w+\s*=\s*\([^)]*\)\s*=>/g;
         const arrowFunctionMatches = (code.match(arrowFunctionPattern) || []).length;
-
-        const classMethodPattern = /class\s+\w+\s*{[^}]*\b\w+\s*\([^)]*\)\s*{/g;
+        const asyncFunctionMatches = (code.match(asyncFunctionPattern) || []).length;
+        const generatorFunctionMatches = (code.match(generatorFunctionPattern) || []).length;
+        
         const classMethodMatches = (code.match(classMethodPattern) || []).length;
-
-        return functionMatches + arrowFunctionMatches + classMethodMatches;
-    }
+        const getterSetterMatches = (code.match(getterSetterPattern) || []).length;
+        const es6ObjectMethodMatches = (code.match(es6ObjectMethodPattern) || []).length;
+    
+        return (
+            functionMatches +
+            arrowFunctionMatches +
+            asyncFunctionMatches +
+            generatorFunctionMatches +
+            classMethodMatches +
+            getterSetterMatches +
+            es6ObjectMethodMatches
+        );
+    }    
 }
 
 export interface CodeMetrics {
