@@ -1,14 +1,20 @@
 {
   "name": "haiku-extension",
   "displayName": "Haiku Extension",
-  "description": "",
-  "version": "0.0.1",
+  "description": "Supercharge your VS Code experience with these custom extensions",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.96.0"
   },
+  "publisher": "HaikuExtension",
+  "icon": "image/Haiku_logo.png",
   "categories": [
     "Other"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MegumiKatou02/vscode-haiku.git"
+  },
   "activationEvents": [
     "onStartupFinished"
   ],
