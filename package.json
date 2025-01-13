@@ -34,6 +34,18 @@
       {
         "command": "extension.analyzeComplexity",
         "title": "Analyze C++ Code Complexity"
+      },
+      {
+        "command": "extension.scanDependencies",
+        "title": "Scan Dependencies"
+      },
+      {
+        "command": "extension.updateDependency",
+        "title": "Update Dependency"
+      },
+      {
+        "command": "extension.updateAllDependencies",
+        "title": "Update All Dependencies"
       }
     ],
     "keybindings": [

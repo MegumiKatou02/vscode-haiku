@@ -6,11 +6,16 @@ import { createOrUpdateReadmeFile } from './utils';
 import { CodeAnalyzer } from './analyzer';
 import { CodeVisualizer } from './visualizer'; 
 
-import { ComplexityAnalysis } from './types';
+import { ComplexityAnalysis, Dependency } from './types';
 import { analyzeLoops } from './analyzers/loopAnalyzer';
 import { analyzeRecursion } from './analyzers/recursionAnalyzer';
 import { analyzeMemoryUsage } from './analyzers/memoryAnalyzer';
 import { showAnalysisResults } from './views/resultView';
+
+import { NpmManager } from './managers/npmManager';
+import { YarnManager } from './managers/yarnManager';
+import { DependencyTreeProvider } from './views/dependencyTreeProvider';
+import { DependencyItem } from './views/dependencyTreeProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "work-time-tracker" is now active!');
@@ -92,11 +97,82 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showErrorMessage(`Analysis failed: ${(error as Error).message}`);
         }
     });
+
+    // package manager
+    const npmManager = new NpmManager();
+    const yarnManager = new YarnManager();
+    let dependencyProvider: DependencyTreeProvider;
+    let dependencies: Dependency[] = [];
+    let scanDependencies = vscode.commands.registerCommand('extension.scanDependencies', async () => {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder) {
+            vscode.window.showErrorMessage('No workspace folder found');
+            return;
+        }
+
+        try {
+            const hasYarnLock = await vscode.workspace.findFiles('yarn.lock');
+            dependencies = await (hasYarnLock.length > 0 ? 
+                yarnManager.getDependencies(workspaceFolder.uri.fsPath) :
+                npmManager.getDependencies(workspaceFolder.uri.fsPath));
+
+            dependencyProvider = new DependencyTreeProvider(dependencies);
+            vscode.window.createTreeView('dependenciesView', {
+                treeDataProvider: dependencyProvider
+            });
+
+            const outdatedCount = dependencies.filter(d => d.isOutdated).length;
+            vscode.window.showInformationMessage(
+                `Found ${dependencies.length} dependencies, ${outdatedCount} outdated`
+            );
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to scan dependencies: ${(error as Error).message}`);
+        }
+    });
+
+    let updateDependency = vscode.commands.registerCommand('extension.updateDependency', async (depItem: DependencyItem) => {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder) {return;}
+
+        try {
+            const hasYarnLock = await vscode.workspace.findFiles('yarn.lock');
+            const manager = hasYarnLock.length > 0 ? yarnManager : npmManager;
+            
+            await manager.updateDependency(workspaceFolder.uri.fsPath, depItem.dependency.name);
+            vscode.window.showInformationMessage(
+                `Successfully updated ${depItem.dependency.name}`
+            );
+            
+            vscode.commands.executeCommand('extension.scanDependencies');
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to update dependency: ${(error as Error).message}`);
+        }
+    });
+
+    let updateAllDependencies = vscode.commands.registerCommand('extension.updateAllDependencies', async () => {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder) {return;}
+
+        try {
+            const hasYarnLock = await vscode.workspace.findFiles('yarn.lock');
+            const manager = hasYarnLock.length > 0 ? yarnManager : npmManager;
+            
+            await manager.updateAllDependencies(workspaceFolder.uri.fsPath);
+            vscode.window.showInformationMessage('Successfully updated all dependencies');
+            
+            vscode.commands.executeCommand('extension.scanDependencies');
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to update dependencies: ${(error as Error).message}`);
+        }
+    });
     
     context.subscriptions.push(
         disposableReadme,
         disposableMetrics,
-        disposableComplexity
+        disposableComplexity,
+        scanDependencies,
+        updateDependency,
+        updateAllDependencies
     );
 }
 
