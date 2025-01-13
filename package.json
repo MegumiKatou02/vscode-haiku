@@ -30,6 +30,10 @@
       {
         "command": "extension.analyzeCodeMetrics",
         "title": "Analyze Code Metrics"
+      },
+      {
+        "command": "extension.analyzeComplexity",
+        "title": "Analyze C++ Code Complexity"
       }
     ],
     "keybindings": [
